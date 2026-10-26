@@ -1,0 +1,1890 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0e17">
+  <meta name="description" content="MECH AI — Industrial IoT Environmental & Machine Health Monitoring Platform powered by ESP32, multi-sensor array, Three.js 3D Digital Twin, and Supabase telemetry.">
+  <title>MECH AI — Industrial IoT Environmental Monitoring Dashboard</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans, Space Grotesk, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Three.js 3D Library & OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <!-- Chart.js & Supabase JS from reliable CDNs -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Configuration & Application Logic -->
+  <script src="config.js"></script>
+  <script src="digital-twin.js"></script>
+  <script defer src="script.js"></script>
+</head>
+<body class="dark-theme">
+  <!-- Subtle ambient decorative lights -->
+  <div class="ambient-glow ambient-cyan" aria-hidden="true"></div>
+  <div class="ambient-glow ambient-blue" aria-hidden="true"></div>
+  <div class="ambient-glow ambient-purple" aria-hidden="true"></div>
+
+  <!-- Mobile navigation backdrop overlay -->
+  <div class="nav-overlay" id="navOverlay" aria-hidden="true"></div>
+
+  <!-- Application Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- ==================== SIDEBAR NAVIGATION ==================== -->
+    <aside class="sidebar" id="sidebar" aria-label="Main Navigation">
+      <div class="sidebar-header">
+        <a class="brand" href="#overview" id="brandLink">
+          <div class="brand-emblem">
+            <svg class="brand-svg" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M18 3L32 10.5V25.5L18 33L4 25.5V10.5L18 3Z" stroke="url(#brandGrad)" stroke-width="2" fill="rgba(0,240,255,0.06)"/>
+              <path d="M18 9L27 14V22L18 27L9 22V14L18 9Z" stroke="#00F0FF" stroke-width="1.5" stroke-dasharray="2 2"/>
+              <circle cx="18" cy="18" r="4" fill="#00F0FF"/>
+              <defs>
+                <linearGradient id="brandGrad" x1="4" y1="3" x2="32" y2="33" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#00F0FF"/>
+                  <stop offset="1" stop-color="#3B82F6"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <span class="emblem-pulse" aria-hidden="true"></span>
+          </div>
+          <div class="brand-text">
+            <div class="brand-name">MECH<span class="brand-accent">AI</span></div>
+            <div class="brand-badge">IoT TELEMETRY v2.0</div>
+          </div>
+        </a>
+        <button class="sidebar-collapse-btn" id="sidebarToggle" type="button" aria-label="Toggle sidebar collapse" title="Collapse sidebar">
+          <svg class="icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 16l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Navigation links -->
+      <nav class="sidebar-nav" id="sidebarNav" aria-label="Dashboard sections">
+        <div class="nav-section-label">MONITORING</div>
+        <a class="nav-item active" href="#overview" data-view="overview" id="navOverview">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+            <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+            <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+            <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+          </svg>
+          <span class="nav-label">Overview</span>
+        </a>
+
+        <!-- 3D DIGITAL TWIN NAVIGATION ITEM -->
+        <a class="nav-item" href="#twin" data-view="twin" id="navTwin">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+          <span class="nav-label">3D Digital Twin</span>
+          <span class="nav-badge pulse-dot-badge"><span class="badge-dot"></span>3D</span>
+        </a>
+
+        <a class="nav-item" href="#monitoring" data-view="monitoring" id="navMonitoring">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+          <span class="nav-label">Live Monitoring</span>
+          <span class="nav-badge pulse-dot-badge" title="Live stream active"><span class="badge-dot"></span>LIVE</span>
+        </a>
+
+        <a class="nav-item" href="#analytics" data-view="analytics" id="navAnalytics">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+          <span class="nav-label">Sensor Analytics</span>
+        </a>
+
+        <a class="nav-item" href="#alerts" data-view="alerts" id="navAlerts">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span class="nav-label">Alert Center</span>
+          <span class="nav-counter" id="navAlertCounter">0</span>
+        </a>
+
+        <div class="nav-section-label">DATA & HARDWARE</div>
+
+        <a class="nav-item" href="#history" data-view="history" id="navHistory">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <span class="nav-label">Historical Data</span>
+        </a>
+
+        <a class="nav-item" href="#status" data-view="status" id="navStatus">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="16" height="16" rx="2"/>
+            <rect x="9" y="9" width="6" height="6"/>
+            <line x1="9" y1="1" x2="9" y2="4"/>
+            <line x1="15" y1="1" x2="15" y2="4"/>
+            <line x1="9" y1="20" x2="9" y2="23"/>
+            <line x1="15" y1="20" x2="15" y2="23"/>
+            <line x1="20" y1="9" x2="23" y2="9"/>
+            <line x1="20" y1="14" x2="23" y2="14"/>
+            <line x1="1" y1="9" x2="4" y2="9"/>
+            <line x1="1" y1="14" x2="4" y2="14"/>
+          </svg>
+          <span class="nav-label">System Status</span>
+        </a>
+
+        <a class="nav-item" href="#settings" data-view="settings" id="navSettings">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          <span class="nav-label">Settings</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar footer / Node status widget -->
+      <div class="sidebar-footer">
+        <div class="device-card">
+          <div class="device-card-header">
+            <span class="device-chip">GATEWAY NODE</span>
+            <span class="status-indicator-dot online" id="sidebarNodeDot" aria-hidden="true"></span>
+          </div>
+          <div class="device-id" id="sidebarNodeId">Alpha-01</div>
+          <div class="device-specs">ESP32-WROOM-32D · Wi-Fi 2.4GHz</div>
+          <div class="device-metrics">
+            <span>DHT11</span> · <span>MPU6050</span> · <span>Rain</span> · <span>Motor</span> · <span>Solar/LiPo</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== MAIN CONTENT WRAPPER ==================== -->
+    <div class="main-wrapper">
+
+      <!-- Top Navigation Bar -->
+      <header class="topbar" id="topbar">
+        <div class="topbar-left">
+          <button class="mobile-toggle-btn" id="mobileMenuToggle" type="button" aria-label="Toggle navigation menu" aria-expanded="false">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <div class="breadcrumb">
+            <span class="breadcrumb-root">MECH AI</span>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current" id="breadcrumbTitle">Overview</span>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Data Source Mode Switcher -->
+          <div class="mode-selector-pill" role="radiogroup" aria-label="Data source mode">
+            <button class="mode-btn active" id="btnModeDemo" type="button" role="radio" aria-checked="true" data-mode="demo">
+              <span class="mode-dot demo-dot"></span>
+              <span>Demo Mode</span>
+            </button>
+            <button class="mode-btn" id="btnModeSupabase" type="button" role="radio" aria-checked="false" data-mode="supabase">
+              <span class="mode-dot live-dot"></span>
+              <span>Supabase Live</span>
+            </button>
+          </div>
+
+          <!-- Connection Status Pill -->
+          <div class="connection-status-badge" id="connectionBadge" title="Current connectivity status">
+            <span class="connection-pulse-ring" id="connectionPulse"></span>
+            <span class="connection-dot" id="connectionDot"></span>
+            <span class="connection-text" id="connectionLabel">Demo Mode (Simulated)</span>
+            <button class="retry-btn hidden" id="retryConnectionBtn" type="button" title="Retry database connection">
+              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 4v6h-6M1 20v-6h6"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              <span>Retry</span>
+            </button>
+          </div>
+
+          <!-- Refresh Action Button -->
+          <button class="action-icon-btn" id="refreshBtn" type="button" title="Fetch fresh readings (R)">
+            <svg class="icon" id="refreshIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.5 2v6h-6M2.5 22v-6h6"/>
+              <path d="M2 11.5a10 10 0 0 1 18.8-4.3L21.5 8M2.5 16l2.7 2.8A10 10 0 0 0 22 12.5"/>
+            </svg>
+          </button>
+
+          <!-- Notification Bell / Alert Trigger -->
+          <button class="action-icon-btn alert-bell-btn" id="alertBellBtn" type="button" title="View Active Alerts">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <span class="bell-counter" id="bellCounter">0</span>
+          </button>
+
+          <!-- Theme Toggle (Dark / Light) -->
+          <button class="action-icon-btn theme-toggle-btn" id="themeToggle" type="button" title="Toggle Light/Dark Theme" aria-label="Toggle theme">
+            <!-- Moon icon for dark theme -->
+            <svg class="icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+            <!-- Sun icon for light theme -->
+            <svg class="icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"/>
+              <line x1="12" y1="1" x2="12" y2="3"/>
+              <line x1="12" y1="21" x2="12" y2="23"/>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+              <line x1="1" y1="12" x2="3" y2="12"/>
+              <line x1="21" y1="12" x2="23" y2="12"/>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Persistent Global Notification / Mode Banner -->
+      <div class="system-banner" id="systemBanner">
+        <div class="banner-content">
+          <div class="banner-icon-wrapper" id="bannerIconWrapper">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+          </div>
+          <div class="banner-text" id="bannerText">
+            <strong>Demo Simulation Mode Active:</strong> Synthetically generated readings simulate an active ESP32 sensor node. Real hardware data is not being fetched. Switch to Supabase mode to stream live readings.
+          </div>
+        </div>
+        <div class="banner-actions">
+          <button class="banner-action-btn" id="bannerActionBtn" type="button">Configure Supabase</button>
+          <button class="banner-dismiss-btn" id="bannerDismissBtn" type="button" aria-label="Dismiss banner">×</button>
+        </div>
+      </div>
+
+      <!-- Main Scrollable Content Container -->
+      <main class="content-container">
+
+        <!-- ================================================================ -->
+        <!-- SECTION 1: OVERVIEW -->
+        <!-- ================================================================ -->
+        <section class="view-section active" id="view-overview" aria-labelledby="overviewHeading">
+          
+          <!-- Hero Telemetry Summary Card -->
+          <div class="hero-overview-card">
+            <div class="hero-left">
+              <div class="hero-eyebrow">
+                <span class="pulse-indicator-small"></span>
+                <span>REAL-TIME IOT TELEMETRY PLATFORM</span>
+              </div>
+              <h1 class="hero-title" id="overviewHeading">
+                Environmental & Machine Health <span class="gradient-text">Console</span>
+              </h1>
+              <p class="hero-description">
+                Continuous multiparameter telemetry captured via ESP32. Monitoring ambient temperature, relative humidity, precipitation ingress, MPU6050 6-axis machine vibration/tilt, testbed motor mechanical stress, solar harvesting, and 3.7V LiPo battery management with autonomous buzzer/LED alarm response.
+              </p>
+              
+              <div class="hero-meta-strip">
+                <div class="meta-pill">
+                  <span class="meta-label">Node:</span>
+                  <strong class="meta-val" id="heroDeviceName">Alpha-01</strong>
+                </div>
+                <div class="meta-pill">
+                  <span class="meta-label">Sampling:</span>
+                  <strong class="meta-val" id="heroSamplingRate">5000 ms</strong>
+                </div>
+                <div class="meta-pill">
+                  <span class="meta-label">Last Sync:</span>
+                  <strong class="meta-val mono" id="heroLastUpdate">Waiting...</strong>
+                </div>
+              </div>
+
+              <!-- Quick action to 3D Digital Twin -->
+              <div class="hero-actions-row">
+                <a class="btn btn-primary" href="#twin" data-view="twin">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                  </svg>
+                  <span>Launch 3D Digital Twin ↗</span>
+                </a>
+                <a class="btn btn-secondary" href="#monitoring" data-view="monitoring">
+                  <span>View Live Telemetry ↓</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Health Score Radial Dial -->
+            <div class="hero-right">
+              <div class="eqi-gauge-card">
+                <div class="gauge-ring-container">
+                  <svg class="gauge-svg" viewBox="0 0 160 160">
+                    <circle class="gauge-bg" cx="80" cy="80" r="66" stroke-width="12" fill="none"/>
+                    <circle class="gauge-progress" id="eqiProgressCircle" cx="80" cy="80" r="66" stroke-width="12" fill="none" stroke-dasharray="414.69" stroke-dashoffset="62.2"/>
+                  </svg>
+                  <div class="gauge-content">
+                    <div class="gauge-value" id="eqiScoreVal">98</div>
+                    <div class="gauge-unit">/100</div>
+                    <div class="gauge-sublabel">SYSTEM HEALTH</div>
+                  </div>
+                </div>
+                <div class="gauge-footer">
+                  <div class="gauge-status-text" id="eqiStatusText">OPTIMAL STATUS</div>
+                  <div class="gauge-disclaimer">Configurable rules-based index</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Metric Highlights Strip -->
+          <div class="quick-kpi-grid">
+            <div class="kpi-card" data-target="monitoring">
+              <div class="kpi-header">
+                <span class="kpi-title">Active Channels</span>
+                <span class="kpi-icon-wrapper cyan">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="kpiActiveSensors">7 / 7</div>
+                <div class="kpi-status-text good">● All hardware channels transmitting</div>
+              </div>
+            </div>
+
+            <div class="kpi-card" data-target="monitoring">
+              <div class="kpi-header">
+                <span class="kpi-title">Machine Vibration</span>
+                <span class="kpi-icon-wrapper teal">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value"><span id="kpiVibration">--</span> <small class="kpi-unit">g RMS</small></div>
+                <div class="kpi-status-text" id="kpiVibrationStatus">● Normal vibration</div>
+              </div>
+            </div>
+
+            <div class="kpi-card" data-target="monitoring">
+              <div class="kpi-header">
+                <span class="kpi-title">Ambient Thermal</span>
+                <span class="kpi-icon-wrapper blue">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value"><span id="kpiTemp">--</span> <small class="kpi-unit">°C</small></div>
+                <div class="kpi-status-text" id="kpiTempStatus">● Normal operating temp</div>
+              </div>
+            </div>
+
+            <div class="kpi-card" data-target="monitoring">
+              <div class="kpi-header">
+                <span class="kpi-title">Solar & 3.7V LiPo</span>
+                <span class="kpi-icon-wrapper amber">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="16" height="10" rx="2" ry="2"/>
+                    <line x1="22" y1="11" x2="22" y2="13"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value"><span id="kpiBattery">--</span> <small class="kpi-unit">V</small></div>
+                <div class="kpi-status-text good" id="kpiBatteryStatus">● Solar charging nominal</div>
+              </div>
+            </div>
+
+            <div class="kpi-card" data-target="alerts">
+              <div class="kpi-header">
+                <span class="kpi-title">Active Alerts</span>
+                <span class="kpi-icon-wrapper rose">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="kpi-body">
+                <div class="kpi-value" id="kpiAlertCount">0</div>
+                <div class="kpi-status-text good" id="kpiAlertStatus">● No threshold breaches</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Architecture & Flow Diagram -->
+          <div class="panel flow-panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">End-to-End IoT Pipeline Topology</h2>
+                <p class="panel-subtitle">ESP32 Multi-Sensor Station → Edge Processing → Supabase Cloud → 3D Digital Twin</p>
+              </div>
+              <span class="pill-tag cyan">ARCHITECTURE</span>
+            </div>
+
+            <div class="pipeline-grid">
+              <div class="pipeline-card">
+                <div class="step-num">01</div>
+                <div class="step-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="4" y="4" width="16" height="16" rx="2"/>
+                    <rect x="9" y="9" width="6" height="6"/>
+                  </svg>
+                </div>
+                <h3 class="step-title">Hardware Sense & Actuate</h3>
+                <p class="step-desc">DHT11, MPU6050, Rain sensor, motor testbed, and solar/LiPo BMS sampled by ESP32; buzzer & LED alert.</p>
+                <div class="step-footer">GPIO4 · I2C · ADC · PWM · GPIO19/2</div>
+              </div>
+
+              <div class="pipeline-arrow" aria-hidden="true">→</div>
+
+              <div class="pipeline-card">
+                <div class="step-num">02</div>
+                <div class="step-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                </div>
+                <h3 class="step-title">Edge Authentication</h3>
+                <p class="step-desc">Validated HTTPS payload sent to Supabase Edge Function with device token verification.</p>
+                <div class="step-footer">Bearer Auth · JSON Guard</div>
+              </div>
+
+              <div class="pipeline-arrow" aria-hidden="true">→</div>
+
+              <div class="pipeline-card">
+                <div class="step-num">03</div>
+                <div class="step-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                  </svg>
+                </div>
+                <h3 class="step-title">PostgreSQL Storage</h3>
+                <p class="step-desc">Readings persisted to public.sensor_readings with Row Level Security (RLS) protection.</p>
+                <div class="step-footer">Indexed · Time-Series</div>
+              </div>
+
+              <div class="pipeline-arrow" aria-hidden="true">→</div>
+
+              <div class="pipeline-card">
+                <div class="step-num">04</div>
+                <div class="step-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                  </svg>
+                </div>
+                <h3 class="step-title">Live Analytics</h3>
+                <p class="step-desc">Client dashboard renders real-time trends, evaluates warning rules, and exports historical datasets.</p>
+                <div class="step-footer">Chart.js · CSV Export</div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ================================================================ -->
+        <!-- SECTION 2: 3D DIGITAL TWIN (INTERACTIVE HARDWARE STATION) -->
+        <!-- ================================================================ -->
+        <section class="view-section" id="view-twin" aria-labelledby="twinHeading">
+          
+          <div class="section-toolbar">
+            <div>
+              <h1 class="view-title" id="twinHeading">3D Environmental Monitoring Station</h1>
+              <p class="view-subtitle">Interactive 3D Digital Twin · Drag to orbit, scroll to zoom, click any sensor component to inspect specs & live telemetry</p>
+            </div>
+            
+            <div class="toolbar-actions">
+              <!-- Camera Preset Buttons -->
+              <div class="twin-cam-presets" role="group" aria-label="Camera view presets">
+                <button class="twin-pill-btn active" data-preset-cam="isometric" type="button" title="Default Isometric View">
+                  <span>🌐 Isometric</span>
+                </button>
+                <button class="twin-pill-btn" data-preset-cam="top" type="button" title="Top-down Wiring View">
+                  <span>📐 Top View</span>
+                </button>
+                <button class="twin-pill-btn" data-preset-cam="esp32" type="button" title="Focus ESP32 Core">
+                  <span>⚡ ESP32</span>
+                </button>
+                <button class="twin-pill-btn" data-preset-cam="power" type="button" title="Focus Solar & 3.7V LiPo BMS">
+                  <span>☀️ Solar / LiPo</span>
+                </button>
+                <button class="twin-pill-btn" data-preset-cam="motor" type="button" title="Focus Testbed Motor">
+                  <span>⚙️ Motor Testbed</span>
+                </button>
+                <button class="twin-pill-btn" data-preset-cam="mpu6050" type="button" title="Focus MPU6050 IMU">
+                  <span>📊 MPU6050</span>
+                </button>
+                <button class="twin-pill-btn" data-preset-cam="dht11" type="button" title="Focus DHT11 Temp/Humidity">
+                  <span>🌡️ DHT11</span>
+                </button>
+                <button class="twin-pill-btn" data-preset-cam="rain" type="button" title="Focus Rain Sensor Module">
+                  <span>🌧️ Rain Sensor</span>
+                </button>
+                <button class="twin-pill-btn" data-preset-cam="alarm" type="button" title="Focus Buzzer & Alarm LED">
+                  <span>🚨 Buzzer / LED</span>
+                </button>
+              </div>
+
+              <!-- Feature Toggles -->
+              <div class="twin-feature-toggles">
+                <button class="twin-icon-btn" id="btnTwinRotate" type="button" title="Toggle Auto-Rotation">
+                  <span>🔄 Auto-Rotate</span>
+                </button>
+                <button class="twin-icon-btn active" id="btnTwinHud" type="button" title="Toggle Floating 3D HUD Tags">
+                  <span>🏷️ HUD Tags</span>
+                </button>
+                <button class="twin-icon-btn" id="btnTwinExplode" type="button" title="Toggle Exploded Assembly View">
+                  <span>📦 Exploded</span>
+                </button>
+                <button class="twin-icon-btn" id="btnTwinWireframe" type="button" title="Toggle Technical Wireframe Mode">
+                  <span>📐 Wireframe</span>
+                </button>
+                <button class="twin-icon-btn" id="btnTwinReset" type="button" title="Reset Camera View">
+                  <span>↻ Reset</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3D Canvas Viewport Container -->
+          <div class="twin-viewport-container" id="digitalTwinContainer">
+            <!-- WebGL Canvas rendered by Three.js -->
+            <canvas class="twin-canvas" id="twinCanvas" aria-label="Interactive 3D digital twin of ESP32 sensor station"></canvas>
+
+            <!-- 2D Screen-Space Floating HUD Callout Layer -->
+            <div class="twin-hud-layer" id="twinHudLayer" aria-hidden="true">
+              <!-- ESP32 Tag -->
+              <div class="hud-callout" id="hudTagEsp32" data-comp="esp32">
+                <span class="tag-dot cyan"></span>
+                <div class="tag-body">
+                  <small class="tag-title">ESP32 Core Gateway</small>
+                  <strong class="tag-value">Alpha-01 · Active</strong>
+                </div>
+              </div>
+
+              <!-- Solar & LiPo Battery Tag -->
+              <div class="hud-callout" id="hudTagPower" data-comp="power">
+                <span class="tag-dot amber"></span>
+                <div class="tag-body">
+                  <small class="tag-title">Solar & 3.7V LiPo BMS</small>
+                  <strong class="tag-value">-- V · Solar Active</strong>
+                </div>
+              </div>
+
+              <!-- Testbed Motor Tag -->
+              <div class="hud-callout" id="hudTagMotor" data-comp="motor">
+                <span class="tag-dot purple"></span>
+                <div class="tag-body">
+                  <small class="tag-title">Testbed Motor Simulator</small>
+                  <strong class="tag-value">-- RPM · Unbalance Test</strong>
+                </div>
+              </div>
+
+              <!-- MPU6050 Tag -->
+              <div class="hud-callout" id="hudTagMpu6050" data-comp="mpu6050">
+                <span class="tag-dot teal"></span>
+                <div class="tag-body">
+                  <small class="tag-title">MPU6050 Vibration / Tilt</small>
+                  <strong class="tag-value">-- g RMS · --° Tilt</strong>
+                </div>
+              </div>
+
+              <!-- DHT11 Tag -->
+              <div class="hud-callout" id="hudTagDht11" data-comp="dht11">
+                <span class="tag-dot blue"></span>
+                <div class="tag-body">
+                  <small class="tag-title">DHT11 Temp & Humidity</small>
+                  <strong class="tag-value">--°C · --%</strong>
+                </div>
+              </div>
+
+              <!-- Rain Sensor Tag -->
+              <div class="hud-callout" id="hudTagRain" data-comp="rain">
+                <span class="tag-dot cyan"></span>
+                <div class="tag-body">
+                  <small class="tag-title">Rain Sensor Module</small>
+                  <strong class="tag-value">--% · Dry Plate</strong>
+                </div>
+              </div>
+
+              <!-- Buzzer & Alarm LED Tag -->
+              <div class="hud-callout" id="hudTagAlarm" data-comp="alarm">
+                <span class="tag-dot rose"></span>
+                <div class="tag-body">
+                  <small class="tag-title">Buzzer & Alarm LED</small>
+                  <strong class="tag-value">Standby · OK</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Viewport Interaction Instructions Overlay -->
+            <div class="twin-interaction-hint">
+              <span>🖱️ Drag to Rotate · Right-Click to Pan · Scroll to Zoom · Click Component to Inspect</span>
+            </div>
+
+            <!-- Component Inspection Side-Drawer / Info Card -->
+            <div class="component-inspector-card hidden" id="componentInspectorCard">
+              <div class="inspector-header">
+                <div>
+                  <span class="inspector-category" id="inspCompCategory">Component Specification</span>
+                  <h3 class="inspector-title" id="inspCompName">ESP32-WROOM-32D</h3>
+                </div>
+                <button class="inspector-close-btn" id="btnTwinCloseInspector" type="button" aria-label="Close component inspector">×</button>
+              </div>
+
+              <!-- Live Telemetry Grid -->
+              <div class="inspector-live-box">
+                <div class="live-box-label">LIVE SENSOR TELEMETRY</div>
+                <div id="inspCompLiveTelemetry">Waiting for sensor data...</div>
+              </div>
+
+              <!-- Technical Specs List -->
+              <div class="inspector-specs-list">
+                <div class="spec-row">
+                  <span class="spec-label">Pinout / Bus:</span>
+                  <strong class="spec-val" id="inspCompPinout">GPIO 4</strong>
+                </div>
+                <div class="spec-row">
+                  <span class="spec-label">Voltage:</span>
+                  <strong class="spec-val" id="inspCompVoltage">3.3V DC</strong>
+                </div>
+                <div class="spec-row">
+                  <span class="spec-label">Technical Specs:</span>
+                  <strong class="spec-val" id="inspCompSpecs">Dual Core 240MHz</strong>
+                </div>
+                <div class="spec-row role-row">
+                  <span class="spec-label">Role in Pipeline:</span>
+                  <p class="spec-desc" id="inspCompRole">Samples environmental sensors and streams encrypted JSON packets to Supabase.</p>
+                </div>
+              </div>
+
+              <div class="inspector-actions">
+                <button class="btn btn-secondary btn-sm" id="btnTwinResetCamera" type="button">
+                  <span>Reset Camera to Overview</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3D Telemetry Quick Strip below canvas -->
+          <div class="twin-telemetry-strip">
+            <div class="twin-stat-item">
+              <span class="ts-label">Temperature (DHT11)</span>
+              <strong class="ts-value"><span id="twinTemp">--</span> °C</strong>
+            </div>
+            <div class="twin-stat-item">
+              <span class="ts-label">Humidity (DHT11)</span>
+              <strong class="ts-value"><span id="twinHumidity">--</span> % RH</strong>
+            </div>
+            <div class="twin-stat-item">
+              <span class="ts-label">Vibration RMS (MPU6050)</span>
+              <strong class="ts-value"><span id="twinVibration">--</span> g</strong>
+            </div>
+            <div class="twin-stat-item">
+              <span class="ts-label">Tilt Angle (MPU6050)</span>
+              <strong class="ts-value"><span id="twinTilt">--</span> °</strong>
+            </div>
+            <div class="twin-stat-item">
+              <span class="ts-label">Rain Moisture</span>
+              <strong class="ts-value"><span id="twinRain">--</span> %</strong>
+            </div>
+            <div class="twin-stat-item">
+              <span class="ts-label">3.7V LiPo Battery</span>
+              <strong class="ts-value"><span id="twinBattery">--</span> V</strong>
+            </div>
+            <div class="twin-stat-item">
+              <span class="ts-label">Motor Testbed</span>
+              <strong class="ts-value"><span id="twinMotor">--</span> RPM</strong>
+            </div>
+            <div class="twin-stat-item">
+              <span class="ts-label">Annunciator Status</span>
+              <strong class="ts-value" id="twinAlarm">Normal (Silent)</strong>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ================================================================ -->
+        <!-- SECTION 3: LIVE MONITORING -->
+        <!-- ================================================================ -->
+        <section class="view-section" id="view-monitoring" aria-labelledby="monitoringHeading">
+          
+          <div class="section-toolbar">
+            <div>
+              <h1 class="view-title" id="monitoringHeading">Live Sensor Monitoring</h1>
+              <p class="view-subtitle">Real-time telemetry feeds from the 7 connected hardware modules on Gateway Alpha-01</p>
+            </div>
+            <div class="toolbar-actions">
+              <span class="refresh-countdown-pill" id="refreshCountdownPill">
+                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span id="refreshCountdownText">Polls every 5s</span>
+              </span>
+              <button class="btn btn-secondary btn-sm" id="liveRefreshBtn" type="button">
+                <span>Refresh Now</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 7 Hardware Component Cards + Gateway Status Card -->
+          <div class="sensor-cards-grid">
+
+            <!-- CARD 1: TEMPERATURE -->
+            <article class="sensor-card" id="cardTemperature">
+              <div class="sensor-card-top">
+                <div class="sensor-badge-group">
+                  <div class="sensor-icon-box temp-accent">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="sensor-name">Temperature</h2>
+                    <span class="sensor-model-tag">DHT11 · Digital Sensor</span>
+                  </div>
+                </div>
+                <span class="status-pill status-normal" id="tempStatusPill">● Optimal</span>
+              </div>
+
+              <div class="sensor-value-row">
+                <div class="sensor-numeric-display">
+                  <span class="sensor-numeric-val" id="valTemperature">--</span>
+                  <span class="sensor-unit">°C</span>
+                </div>
+                <div class="sensor-delta-pill" id="deltaTemperature" title="Change since last sample">
+                  <span class="delta-arrow">─</span>
+                  <span class="delta-val">0.0°C</span>
+                </div>
+              </div>
+
+              <!-- Sparkline Trend Chart Canvas -->
+              <div class="sparkline-wrapper">
+                <canvas class="sparkline-canvas" id="sparkTemp" height="40" aria-label="Temperature mini trend"></canvas>
+              </div>
+
+              <!-- Visual Range Gauge Bar -->
+              <div class="gauge-bar-track">
+                <div class="gauge-bar-fill temp-gradient" id="barTemperature" style="width: 35%"></div>
+              </div>
+              <div class="gauge-scale-labels">
+                <span>0°C</span>
+                <span>Threshold: <strong id="cardTempThresholdVal">40°C</strong></span>
+                <span>80°C</span>
+              </div>
+
+              <div class="sensor-card-footer">
+                <span class="sensor-spec">Pin: GPIO 4</span>
+                <button class="sensor-3d-link-btn" data-focus-comp="dht11" type="button">Inspect in 3D ↗</button>
+              </div>
+            </article>
+
+            <!-- CARD 2: HUMIDITY -->
+            <article class="sensor-card" id="cardHumidity">
+              <div class="sensor-card-top">
+                <div class="sensor-badge-group">
+                  <div class="sensor-icon-box humidity-accent">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="sensor-name">Relative Humidity</h2>
+                    <span class="sensor-model-tag">DHT11 · Capacitive</span>
+                  </div>
+                </div>
+                <span class="status-pill status-normal" id="humidityStatusPill">● Optimal</span>
+              </div>
+
+              <div class="sensor-value-row">
+                <div class="sensor-numeric-display">
+                  <span class="sensor-numeric-val" id="valHumidity">--</span>
+                  <span class="sensor-unit">%</span>
+                </div>
+                <div class="sensor-delta-pill" id="deltaHumidity" title="Change since last sample">
+                  <span class="delta-arrow">─</span>
+                  <span class="delta-val">0%</span>
+                </div>
+              </div>
+
+              <div class="sparkline-wrapper">
+                <canvas class="sparkline-canvas" id="sparkHumidity" height="40" aria-label="Humidity mini trend"></canvas>
+              </div>
+
+              <div class="gauge-bar-track">
+                <div class="gauge-bar-fill humidity-gradient" id="barHumidity" style="width: 55%"></div>
+              </div>
+              <div class="gauge-scale-labels">
+                <span>0%</span>
+                <span>Target: 30–70%</span>
+                <span>100%</span>
+              </div>
+
+              <div class="sensor-card-footer">
+                <span class="sensor-spec">Pin: GPIO 4</span>
+                <button class="sensor-3d-link-btn" data-focus-comp="dht11" type="button">Inspect in 3D ↗</button>
+              </div>
+            </article>
+
+            <!-- CARD 3: MPU6050 VIBRATION & TILT SENSOR -->
+            <article class="sensor-card" id="cardVibration">
+              <div class="sensor-card-top">
+                <div class="sensor-badge-group">
+                  <div class="sensor-icon-box vibration-accent">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="sensor-name">Vibration & Tilt</h2>
+                    <span class="sensor-model-tag">MPU6050 · 6-Axis IMU</span>
+                  </div>
+                </div>
+                <span class="status-pill status-normal" id="vibrationStatusPill">● Normal</span>
+              </div>
+
+              <div class="sensor-value-row">
+                <div class="sensor-numeric-display">
+                  <span class="sensor-numeric-val" id="valVibration">--</span>
+                  <span class="sensor-unit">g RMS</span>
+                </div>
+                <div class="sensor-delta-pill" id="deltaVibration" title="Change since last sample">
+                  <span class="delta-arrow">─</span>
+                  <span class="delta-val">0.0g</span>
+                </div>
+              </div>
+
+              <div class="sparkline-wrapper">
+                <canvas class="sparkline-canvas" id="sparkVibration" height="40" aria-label="Vibration mini trend"></canvas>
+              </div>
+
+              <div class="gauge-bar-track">
+                <div class="gauge-bar-fill vibration-gradient" id="barVibration" style="width: 25%"></div>
+              </div>
+              <div class="gauge-scale-labels">
+                <span>0g</span>
+                <span>Limit: <strong id="cardVibrationThresholdVal">1.5 g</strong> · Tilt: <strong id="valTiltDisplay">--°</strong></span>
+                <span>4.0g</span>
+              </div>
+
+              <div class="sensor-card-footer">
+                <span class="sensor-spec">I2C: GPIO 21 (SDA) · GPIO 22 (SCL)</span>
+                <button class="sensor-3d-link-btn" data-focus-comp="mpu6050" type="button">Inspect in 3D ↗</button>
+              </div>
+            </article>
+
+            <!-- CARD 4: RAIN SENSOR MODULE -->
+            <article class="sensor-card" id="cardRain">
+              <div class="sensor-card-top">
+                <div class="sensor-badge-group">
+                  <div class="sensor-icon-box rain-accent">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="16" y1="13" x2="16" y2="21"/>
+                      <line x1="8" y1="13" x2="8" y2="21"/>
+                      <line x1="12" y1="15" x2="12" y2="23"/>
+                      <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="sensor-name">Rain & Moisture</h2>
+                    <span class="sensor-model-tag">Conductive Grid + LM393</span>
+                  </div>
+                </div>
+                <span class="status-pill status-normal" id="rainStatusPill">● Dry</span>
+              </div>
+
+              <div class="sensor-value-row">
+                <div class="sensor-numeric-display">
+                  <span class="sensor-numeric-val" id="valRain">--</span>
+                  <span class="sensor-unit">%</span>
+                </div>
+                <div class="sensor-delta-pill" id="deltaRain" title="Change since last sample">
+                  <span class="delta-arrow">─</span>
+                  <span class="delta-val">0%</span>
+                </div>
+              </div>
+
+              <div class="sparkline-wrapper">
+                <canvas class="sparkline-canvas" id="sparkRain" height="40" aria-label="Rain mini trend"></canvas>
+              </div>
+
+              <div class="gauge-bar-track">
+                <div class="gauge-bar-fill rain-gradient" id="barRain" style="width: 5%"></div>
+              </div>
+              <div class="gauge-scale-labels">
+                <span>0% (Dry)</span>
+                <span>Warn limit: <strong id="cardRainThresholdVal">50%</strong></span>
+                <span>100% (Flooded)</span>
+              </div>
+
+              <div class="sensor-card-footer">
+                <span class="sensor-spec">Pin: ADC1 / GPIO 34 (Analog) + GPIO 23</span>
+                <button class="sensor-3d-link-btn" data-focus-comp="rain" type="button">Inspect in 3D ↗</button>
+              </div>
+            </article>
+
+            <!-- CARD 5: SOLAR PANEL & 3.7V LiPo BATTERY -->
+            <article class="sensor-card" id="cardBattery">
+              <div class="sensor-card-top">
+                <div class="sensor-badge-group">
+                  <div class="sensor-icon-box battery-accent">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="2" y="7" width="16" height="10" rx="2" ry="2"/>
+                      <line x1="22" y1="11" x2="22" y2="13"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="sensor-name">Solar & 3.7V LiPo</h2>
+                    <span class="sensor-model-tag">TP4056 BMS + Solar Harvest</span>
+                  </div>
+                </div>
+                <span class="status-pill status-normal" id="batteryStatusPill">● Charged</span>
+              </div>
+
+              <div class="sensor-value-row">
+                <div class="sensor-numeric-display">
+                  <span class="sensor-numeric-val" id="valBattery">--</span>
+                  <span class="sensor-unit">V</span>
+                </div>
+                <div class="sensor-delta-pill" id="deltaBattery" title="Change since last sample">
+                  <span class="delta-arrow">─</span>
+                  <span class="delta-val">0.0V</span>
+                </div>
+              </div>
+
+              <div class="sparkline-wrapper">
+                <canvas class="sparkline-canvas" id="sparkBattery" height="40" aria-label="Battery mini trend"></canvas>
+              </div>
+
+              <div class="gauge-bar-track">
+                <div class="gauge-bar-fill battery-gradient" id="barBattery" style="width: 85%"></div>
+              </div>
+              <div class="gauge-scale-labels">
+                <span>3.0V (Cutoff)</span>
+                <span>Solar: <strong id="valSolarDisplay">-- V</strong> · Low limit: <strong id="cardBatteryThresholdVal">3.4V</strong></span>
+                <span>4.2V (Max)</span>
+              </div>
+
+              <div class="sensor-card-footer">
+                <span class="sensor-spec">ADC Divider: GPIO 35 · TP4056 BMS</span>
+                <button class="sensor-3d-link-btn" data-focus-comp="power" type="button">Inspect in 3D ↗</button>
+              </div>
+            </article>
+
+            <!-- CARD 6: TESTBED MOTOR FOR FAILURE SIMULATION -->
+            <article class="sensor-card" id="cardMotor">
+              <div class="sensor-card-top">
+                <div class="sensor-badge-group">
+                  <div class="sensor-icon-box motor-accent">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="3"/>
+                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="sensor-name">Testbed Motor</h2>
+                    <span class="sensor-model-tag">Failure Simulation Drive</span>
+                  </div>
+                </div>
+                <span class="status-pill status-normal" id="motorStatusPill">● Running</span>
+              </div>
+
+              <div class="sensor-value-row">
+                <div class="sensor-numeric-display">
+                  <span class="sensor-numeric-val" id="valMotor">--</span>
+                  <span class="sensor-unit">RPM</span>
+                </div>
+                <div class="sensor-delta-pill" id="deltaMotor" title="Change since last sample">
+                  <span class="delta-arrow">─</span>
+                  <span class="delta-val">0 RPM</span>
+                </div>
+              </div>
+
+              <div class="sparkline-wrapper">
+                <canvas class="sparkline-canvas" id="sparkMotor" height="40" aria-label="Motor RPM mini trend"></canvas>
+              </div>
+
+              <div class="gauge-bar-track">
+                <div class="gauge-bar-fill motor-gradient" id="barMotor" style="width: 45%"></div>
+              </div>
+              <div class="gauge-scale-labels">
+                <span>0 RPM (Stopped)</span>
+                <span>Unbalance: <strong id="valMotorUnbalance">Eccentric Active</strong></span>
+                <span>3000 RPM (Max)</span>
+              </div>
+
+              <div class="sensor-card-footer">
+                <span class="sensor-spec">Drive: PWM GPIO 18 (MOSFET Gate)</span>
+                <button class="sensor-3d-link-btn" data-focus-comp="motor" type="button">Inspect in 3D ↗</button>
+              </div>
+            </article>
+
+            <!-- CARD 7: ACTIVE BUZZER & ALARM LED SUITE -->
+            <article class="sensor-card" id="cardAlarm">
+              <div class="sensor-card-top">
+                <div class="sensor-badge-group">
+                  <div class="sensor-icon-box alarm-accent">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="sensor-name">Buzzer & Alarm LED</h2>
+                    <span class="sensor-model-tag">Auditory & Visual Annunciator</span>
+                  </div>
+                </div>
+                <span class="status-pill status-normal" id="alarmStatusPill">● Standby</span>
+              </div>
+
+              <div class="sensor-value-row">
+                <div class="sensor-numeric-display">
+                  <span class="sensor-numeric-val text-sm" id="valAlarmMode">Silent (Normal)</span>
+                </div>
+                <div class="sensor-delta-pill" id="deltaAlarm">
+                  <span class="delta-val">LED: OK (Green)</span>
+                </div>
+              </div>
+
+              <div class="alarm-indicators-preview" style="display: flex; gap: 12px; margin: 12px 0; padding: 10px; background: rgba(0,0,0,0.25); border-radius: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                  <span class="status-indicator-dot online" id="ledGreenIndicator" style="width: 12px; height: 12px; background: #10b981;"></span>
+                  <span style="font-size: 0.75rem; color: var(--text-secondary);">Normal LED</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                  <span class="status-indicator-dot" id="ledRedIndicator" style="width: 12px; height: 12px; background: #64748b;"></span>
+                  <span style="font-size: 0.75rem; color: var(--text-secondary);">Alarm LED</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                  <span style="font-size: 0.85rem;" id="buzzerAudioIcon">🔇</span>
+                  <span style="font-size: 0.75rem; color: var(--text-secondary);" id="buzzerStateLabel">85dB Buzzer</span>
+                </div>
+              </div>
+
+              <div class="gauge-bar-track">
+                <div class="gauge-bar-fill" id="barAlarm" style="width: 0%; background: #ef4444;"></div>
+              </div>
+              <div class="gauge-scale-labels">
+                <span>Standby</span>
+                <span>Response: <strong id="cardAlarmResponse">Autonomous GPIO Trigger</strong></span>
+                <span>Active Alarm</span>
+              </div>
+
+              <div class="sensor-card-footer">
+                <span class="sensor-spec">Pins: GPIO 19 (Buzzer) · GPIO 2 (LED)</span>
+                <button class="sensor-3d-link-btn" data-focus-comp="alarm" type="button">Inspect in 3D ↗</button>
+              </div>
+            </article>
+
+            <!-- CARD 8: GATEWAY NODE TELEMETRY -->
+            <article class="sensor-card gateway-telemetry-card">
+              <div class="sensor-card-top">
+                <div class="sensor-badge-group">
+                  <div class="sensor-icon-box gateway-accent">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+                      <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+                      <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                      <line x1="12" y1="20" x2="12.01" y2="20"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="sensor-name">Hardware Gateway</h2>
+                    <span class="sensor-model-tag">Node Alpha-01 Telemetry</span>
+                  </div>
+                </div>
+                <span class="status-pill status-ok" id="gatewayStatusPill">● Active</span>
+              </div>
+
+              <div class="sensor-value-row">
+                <div class="sensor-numeric-display">
+                  <span class="sensor-numeric-val text-sm" id="gatewayModeDisplay">Demo Mode</span>
+                </div>
+                <div class="record-counter-pill" id="recordCounterPill">
+                  <span id="recordCountVal">0</span> readings
+                </div>
+              </div>
+
+              <!-- Animated signal equalizer bars -->
+              <div class="signal-equalizer" aria-hidden="true">
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+              </div>
+
+              <div class="gateway-details-grid">
+                <div class="g-item"><span class="g-label">Wi-Fi RSSI:</span> <strong class="g-val">-64 dBm</strong></div>
+                <div class="g-item"><span class="g-label">Protocol:</span> <strong class="g-val">HTTPS / REST</strong></div>
+                <div class="g-item"><span class="g-label">MCU:</span> <strong class="g-val">ESP32 240MHz</strong></div>
+                <div class="g-item"><span class="g-label">Backend:</span> <strong class="g-val">Supabase PG</strong></div>
+              </div>
+
+              <div class="sensor-card-footer">
+                <span class="sensor-spec">Firmware: v2.4.0-stable</span>
+                <button class="sensor-3d-link-btn" data-focus-comp="esp32" type="button">Inspect in 3D ↗</button>
+              </div>
+            </article>
+
+          </div>
+
+          <!-- Calibration & Hardware Notice -->
+          <div class="info-callout">
+            <svg class="icon-sm info-callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <div class="info-callout-text">
+              <strong>Engineering Note:</strong> MPU6050 calculates Root-Mean-Square (RMS) vibration and structural tilt angles over a 100ms sliding window sampled via I2C at 400kHz. Rain sensor uses double-sided nickel/gold serpentine tracks with LM393 comparator providing both 12-bit analog moisture intensity and digital threshold triggers. The testbed motor features an eccentric unbalance weight for simulating bearing fault signatures and mechanical vibration anomalies.
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ================================================================ -->
+        <!-- SECTION 4: SENSOR ANALYTICS -->
+        <!-- ================================================================ -->
+        <section class="view-section" id="view-analytics" aria-labelledby="analyticsHeading">
+          
+          <div class="section-toolbar">
+            <div>
+              <h1 class="view-title" id="analyticsHeading">Sensor Analytics & Trends</h1>
+              <p class="view-subtitle">High-resolution time-series data visualizations with interactive time filtering</p>
+            </div>
+            
+            <div class="toolbar-actions">
+              <!-- Time Range Selector -->
+              <div class="filter-btn-group" role="group" aria-label="Chart time range filter">
+                <button class="filter-btn active" data-range="12" type="button">12 Samples</button>
+                <button class="filter-btn" data-range="24" type="button">24 Samples</button>
+                <button class="filter-btn" data-range="50" type="button">50 Samples</button>
+                <button class="filter-btn" data-range="100" type="button">All (100)</button>
+              </div>
+
+              <button class="btn btn-secondary btn-sm" id="exportChartDataBtn" type="button">
+                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Export CSV</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 Full Feature Analytical Charts -->
+          <div class="analytics-charts-grid">
+
+            <!-- CHART 1: TEMPERATURE -->
+            <div class="panel chart-card">
+              <div class="chart-header">
+                <div class="chart-title-group">
+                  <h2 class="chart-title">Temperature Trajectory</h2>
+                  <span class="chart-subtitle">DHT11 Ambient Sensor · °C</span>
+                </div>
+                <div class="chart-stat-badges">
+                  <span class="stat-pill">Avg: <strong id="statTempAvg">--</strong>°C</span>
+                  <span class="stat-pill">Peak: <strong id="statTempMax">--</strong>°C</span>
+                </div>
+              </div>
+              <div class="chart-canvas-wrapper">
+                <canvas id="temperatureChart" aria-label="Temperature time series chart"></canvas>
+              </div>
+            </div>
+
+            <!-- CHART 2: HUMIDITY -->
+            <div class="panel chart-card">
+              <div class="chart-header">
+                <div class="chart-title-group">
+                  <h2 class="chart-title">Relative Humidity Dynamics</h2>
+                  <span class="chart-subtitle">DHT11 Capacitive Sensor · % RH</span>
+                </div>
+                <div class="chart-stat-badges">
+                  <span class="stat-pill">Avg: <strong id="statHumidityAvg">--</strong>%</span>
+                  <span class="stat-pill">Peak: <strong id="statHumidityMax">--</strong>%</span>
+                </div>
+              </div>
+              <div class="chart-canvas-wrapper">
+                <canvas id="humidityChart" aria-label="Humidity time series chart"></canvas>
+              </div>
+            </div>
+
+            <!-- CHART 3: MPU6050 VIBRATION & TILT DYNAMICS -->
+            <div class="panel chart-card">
+              <div class="chart-header">
+                <div class="chart-title-group">
+                  <h2 class="chart-title">MPU6050 Vibration & Tilt Dynamics</h2>
+                  <span class="chart-subtitle">RMS Acceleration (g) vs Tilt Angle (°)</span>
+                </div>
+                <div class="chart-stat-badges">
+                  <span class="stat-pill">Vib Avg: <strong id="statVibrationAvg">--</strong> g</span>
+                  <span class="stat-pill">Tilt Avg: <strong id="statTiltAvg">--</strong>°</span>
+                </div>
+              </div>
+              <div class="chart-canvas-wrapper">
+                <canvas id="vibrationChart" aria-label="MPU6050 vibration and tilt time series chart"></canvas>
+              </div>
+            </div>
+
+            <!-- CHART 4: SOLAR & LiPo BATTERY VOLTAGE CURVE -->
+            <div class="panel chart-card">
+              <div class="chart-header">
+                <div class="chart-title-group">
+                  <h2 class="chart-title">Solar & LiPo Battery Power Curve</h2>
+                  <span class="chart-subtitle">3.7V LiPo Cell (V) & Rain Moisture Level (%)</span>
+                </div>
+                <div class="chart-stat-badges">
+                  <span class="stat-pill">Batt Avg: <strong id="statBatteryAvg">--</strong> V</span>
+                  <span class="stat-pill">Rain Peak: <strong id="statRainMax">--</strong>%</span>
+                </div>
+              </div>
+              <div class="chart-canvas-wrapper">
+                <canvas id="powerChart" aria-label="Solar and battery power curve time series chart"></canvas>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ================================================================ -->
+        <!-- SECTION 5: ALERT CENTER -->
+        <!-- ================================================================ -->
+        <section class="view-section" id="view-alerts" aria-labelledby="alertsHeading">
+          
+          <div class="section-toolbar">
+            <div>
+              <h1 class="view-title" id="alertsHeading">Environmental & Machine Alert Center</h1>
+              <p class="view-subtitle">Configure thresholds for vibration, rain, battery, and climate with automated buzzer & LED triggers</p>
+            </div>
+            
+            <div class="toolbar-actions">
+              <button class="btn btn-secondary btn-sm" id="resetThresholdsBtn" type="button">
+                <span>Reset to Defaults</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="alerts-layout-grid">
+            
+            <!-- Left: Active Alert Incident Feed -->
+            <div class="panel alert-feed-panel">
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title">Active Condition Log</h2>
+                  <p class="panel-subtitle" id="alertFeedSubtitle">Evaluated in real-time from latest sensor reading</p>
+                </div>
+                <span class="alert-status-counter" id="activeAlertBadge">0 Active</span>
+              </div>
+
+              <!-- Live alert items container -->
+              <div class="alert-list-container" id="alertListContainer">
+                <div class="alert-empty-state">
+                  <div class="empty-icon-circle">✓</div>
+                  <h3>All Sensor Parameters Within Limits</h3>
+                  <p>No threshold violations detected on machine Alpha-01. Readouts comply with configured environmental limits.</p>
+                </div>
+              </div>
+
+              <div class="alert-safety-disclaimer">
+                <strong>Safety Annunciator Notice:</strong> Breaching any threshold triggers an immediate physical reaction: the on-board buzzer sounds an 85dB alert pulse and the Red Alarm LED illuminates until parameters normalize.
+              </div>
+            </div>
+
+            <!-- Right: Configurable Threshold Controls -->
+            <div class="panel threshold-settings-panel">
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title">Configurable Threshold Matrix</h2>
+                  <p class="panel-subtitle">Slide to adjust trigger levels and observe live alarm reactions</p>
+                </div>
+              </div>
+
+              <!-- Preset Selectors -->
+              <div class="preset-selector-row">
+                <span class="preset-label">Preset:</span>
+                <div class="preset-pills">
+                  <button class="preset-pill active" data-preset="industrial" type="button">Industrial Bench</button>
+                  <button class="preset-pill" data-preset="sensitive" type="button">Sensitive Bearing</button>
+                  <button class="preset-pill" data-preset="outdoor" type="button">Outdoor Solar</button>
+                </div>
+              </div>
+
+              <form class="threshold-sliders-form" id="thresholdForm" onsubmit="return false;">
+
+                <!-- Temperature Threshold -->
+                <div class="threshold-control-group">
+                  <div class="threshold-label-row">
+                    <label for="inputTempThreshold">Temperature Warning Level (°C)</label>
+                    <span class="threshold-current-value"><span id="lblTempThreshold">40</span> °C</span>
+                  </div>
+                  <input class="slider-input" id="inputTempThreshold" type="range" min="20" max="70" step="1" value="40">
+                  <div class="slider-ticks">
+                    <span>20°C</span>
+                    <span>Default: 40°C</span>
+                    <span>70°C</span>
+                  </div>
+                </div>
+
+                <!-- Humidity Warning Level -->
+                <div class="threshold-control-group">
+                  <div class="threshold-label-row">
+                    <label for="inputHumidityThreshold">Humidity Warning Level (% RH)</label>
+                    <span class="threshold-current-value"><span id="lblHumidityThreshold">85</span> %</span>
+                  </div>
+                  <input class="slider-input" id="inputHumidityThreshold" type="range" min="40" max="95" step="1" value="85">
+                  <div class="slider-ticks">
+                    <span>40%</span>
+                    <span>Default: 85%</span>
+                    <span>95%</span>
+                  </div>
+                </div>
+
+                <!-- Machine Vibration Limit -->
+                <div class="threshold-control-group">
+                  <div class="threshold-label-row">
+                    <label for="inputVibrationThreshold">MPU6050 Machine Vibration Limit (g RMS)</label>
+                    <span class="threshold-current-value"><span id="lblVibrationThreshold">1.5</span> g</span>
+                  </div>
+                  <input class="slider-input" id="inputVibrationThreshold" type="range" min="0.2" max="4.0" step="0.1" value="1.5">
+                  <div class="slider-ticks">
+                    <span>0.2 g</span>
+                    <span>Warning: 1.5 g</span>
+                    <span>4.0 g</span>
+                  </div>
+                </div>
+
+                <!-- Rain / Moisture Threshold -->
+                <div class="threshold-control-group">
+                  <div class="threshold-label-row">
+                    <label for="inputRainThreshold">Rain Sensor Moisture Warning (%)</label>
+                    <span class="threshold-current-value"><span id="lblRainThreshold">50</span> %</span>
+                  </div>
+                  <input class="slider-input" id="inputRainThreshold" type="range" min="10" max="90" step="5" value="50">
+                  <div class="slider-ticks">
+                    <span>10% (Trace)</span>
+                    <span>Warning: 50%</span>
+                    <span>90% (Flood)</span>
+                  </div>
+                </div>
+
+                <!-- LiPo Low Battery Cutoff -->
+                <div class="threshold-control-group">
+                  <div class="threshold-label-row">
+                    <label for="inputBatteryThreshold">3.7V LiPo Low Voltage Alert (V)</label>
+                    <span class="threshold-current-value"><span id="lblBatteryThreshold">3.40</span> V</span>
+                  </div>
+                  <input class="slider-input" id="inputBatteryThreshold" type="range" min="3.0" max="3.8" step="0.05" value="3.40">
+                  <div class="slider-ticks">
+                    <span>3.0V (Critical)</span>
+                    <span>Warning: 3.40V</span>
+                    <span>3.8V</span>
+                  </div>
+                </div>
+
+              </form>
+
+              <div class="threshold-footer">
+                <button class="btn btn-primary btn-sm" id="saveThresholdsBtn" type="button">
+                  Save Thresholds to Browser
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ================================================================ -->
+        <!-- SECTION 6: HISTORICAL DATA -->
+        <!-- ================================================================ -->
+        <section class="view-section" id="view-history" aria-labelledby="historyHeading">
+          
+          <div class="section-toolbar">
+            <div>
+              <h1 class="view-title" id="historyHeading">Historical Telemetry Logs</h1>
+              <p class="view-subtitle">Complete chronological record of received environmental readings with search, filters, and export</p>
+            </div>
+            
+            <div class="toolbar-actions">
+              <button class="btn btn-primary btn-sm" id="historyExportBtn" type="button">
+                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Export CSV</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- History Table Controls Toolbar -->
+          <div class="table-filter-bar">
+            <!-- Search bar -->
+            <div class="search-input-wrapper">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input class="search-input" id="tableSearchInput" type="text" placeholder="Search timestamp, machine, values..." aria-label="Search telemetry history">
+            </div>
+
+            <!-- Source Filter -->
+            <div class="filter-dropdown-wrapper">
+              <label class="dropdown-label" for="filterSource">Source:</label>
+              <select class="select-control" id="filterSource">
+                <option value="all">All Sources</option>
+                <option value="supabase">Supabase Live Only</option>
+                <option value="demo">Demo Simulation Only</option>
+              </select>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="filter-dropdown-wrapper">
+              <label class="dropdown-label" for="filterStatus">Status:</label>
+              <select class="select-control" id="filterStatus">
+                <option value="all">All Readings</option>
+                <option value="normal">Normal Only</option>
+                <option value="warning">Threshold Breached</option>
+              </select>
+            </div>
+
+            <!-- Rows Per Page -->
+            <div class="filter-dropdown-wrapper">
+              <label class="dropdown-label" for="pageSizeSelect">Rows:</label>
+              <select class="select-control" id="pageSizeSelect">
+                <option value="10">10 / page</option>
+                <option value="25" selected>25 / page</option>
+                <option value="50">50 / page</option>
+                <option value="100">100 / page</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="panel table-panel">
+            <div class="table-responsive-wrapper">
+              <table class="telemetry-table" id="telemetryTable">
+                <thead>
+                  <tr>
+                    <th class="sortable" data-sort="recorded_at">
+                      <span>Recorded At</span>
+                      <span class="sort-icon">↕</span>
+                    </th>
+                    <th>Device</th>
+                    <th class="sortable" data-sort="temperature">
+                      <span>Temp (°C)</span>
+                      <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="sortable" data-sort="humidity">
+                      <span>Humidity (%)</span>
+                      <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="sortable" data-sort="vibration">
+                      <span>Vibration (g)</span>
+                      <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="sortable" data-sort="tilt_angle">
+                      <span>Tilt (°)</span>
+                      <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="sortable" data-sort="rain_level">
+                      <span>Rain (%)</span>
+                      <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="sortable" data-sort="battery_volts">
+                      <span>LiPo (V)</span>
+                      <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="sortable" data-sort="motor_rpm">
+                      <span>Motor (RPM)</span>
+                      <span class="sort-icon">↕</span>
+                    </th>
+                    <th>Alarm</th>
+                    <th>Status</th>
+                    <th>Source</th>
+                  </tr>
+                </thead>
+                <tbody id="telemetryTableBody">
+                  <tr>
+                    <td colspan="12" class="table-empty-row">Loading telemetry logs...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Table Pagination Bar -->
+            <div class="table-pagination-footer">
+              <div class="pagination-info" id="paginationInfo">
+                Showing <strong id="pagStart">0</strong> to <strong id="pagEnd">0</strong> of <strong id="pagTotal">0</strong> records
+              </div>
+              <div class="pagination-controls" id="paginationControls">
+                <button class="pag-btn" id="btnPagPrev" type="button" disabled>← Previous</button>
+                <span class="pag-page-indicator" id="pagPageIndicator">Page 1 of 1</span>
+                <button class="pag-btn" id="btnPagNext" type="button" disabled>Next →</button>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ================================================================ -->
+        <!-- SECTION 7: SYSTEM STATUS -->
+        <!-- ================================================================ -->
+        <section class="view-section" id="view-status" aria-labelledby="statusHeading">
+          
+          <div class="section-toolbar">
+            <div>
+              <h1 class="view-title" id="statusHeading">System & Hardware Status</h1>
+              <p class="view-subtitle">Diagnostics, sensor health, and network connectivity verification</p>
+            </div>
+            
+            <div class="toolbar-actions">
+              <button class="btn btn-secondary btn-sm" id="pingDatabaseBtn" type="button">
+                <span>Test Database Latency</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Hardware Diagnostics Grid -->
+          <div class="system-diagnostics-grid">
+
+            <!-- Card 1: Node Alpha-01 -->
+            <div class="panel diag-card">
+              <div class="diag-header">
+                <div class="diag-icon-box cyan">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="4" y="4" width="16" height="16" rx="2"/>
+                    <rect x="9" y="9" width="6" height="6"/>
+                  </svg>
+                </div>
+                <div>
+                  <h2 class="diag-title">ESP32 Core Microcontroller</h2>
+                  <span class="diag-subtitle">Node Identifier: Alpha-01</span>
+                </div>
+                <span class="diag-pill online">ONLINE</span>
+              </div>
+              <div class="diag-items-list">
+                <div class="diag-row"><span class="diag-label">Processor</span><strong class="diag-val">Dual Core Xtensa 240MHz</strong></div>
+                <div class="diag-row"><span class="diag-label">Wi-Fi Connection</span><strong class="diag-val">802.11 b/g/n (2.4 GHz)</strong></div>
+                <div class="diag-row"><span class="diag-label">Signal Strength (RSSI)</span><strong class="diag-val">-64 dBm (Good)</strong></div>
+                <div class="diag-row"><span class="diag-label">Firmware Release</span><strong class="diag-val">v2.4.0 (TLS 1.3 enabled)</strong></div>
+                <div class="diag-row"><span class="diag-label">Heartbeat Rate</span><strong class="diag-val">5000 ms periodic</strong></div>
+              </div>
+            </div>
+
+            <!-- Card 2: Sensor Health Matrix -->
+            <div class="panel diag-card">
+              <div class="diag-header">
+                <div class="diag-icon-box teal">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                  </svg>
+                </div>
+                <div>
+                  <h2 class="diag-title">Hardware Health Matrix</h2>
+                  <span class="diag-subtitle">Physical Hardware Diagnostics</span>
+                </div>
+                <span class="diag-pill online">7 / 7 OK</span>
+              </div>
+              <div class="diag-items-list">
+                <div class="diag-row"><span class="diag-label">DHT11 Climate</span><span class="status-badge-mini good">● Active (Pin 4)</span></div>
+                <div class="diag-row"><span class="diag-label">MPU6050 Vibration/Tilt</span><span class="status-badge-mini good">● Active (I2C 21/22)</span></div>
+                <div class="diag-row"><span class="diag-label">Rain Sensor Module</span><span class="status-badge-mini good">● Active (Pin 34 / 23)</span></div>
+                <div class="diag-row"><span class="diag-label">Solar & LiPo BMS</span><span class="status-badge-mini good">● Nominal (Pin 35 ADC)</span></div>
+                <div class="diag-row"><span class="diag-label">Testbed Motor</span><span class="status-badge-mini good">● Ready (PWM Pin 18)</span></div>
+                <div class="diag-row"><span class="diag-label">Active Piezo Buzzer</span><span class="status-badge-mini good">● Standby (Pin 19)</span></div>
+                <div class="diag-row"><span class="diag-label">Alarm & Status LEDs</span><span class="status-badge-mini good">● Ready (GPIO 2)</span></div>
+              </div>
+            </div>
+
+            <!-- Card 3: Cloud & Database Status -->
+            <div class="panel diag-card">
+              <div class="diag-header">
+                <div class="diag-icon-box blue">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                  </svg>
+                </div>
+                <div>
+                  <h2 class="diag-title">Supabase Backend</h2>
+                  <span class="diag-subtitle">Database & Edge Runtime</span>
+                </div>
+                <span class="diag-pill" id="diagDbPill">READY</span>
+              </div>
+              <div class="diag-items-list">
+                <div class="diag-row"><span class="diag-label">Database Type</span><strong class="diag-val">PostgreSQL 15+</strong></div>
+                <div class="diag-row"><span class="diag-label">Table Target</span><strong class="diag-val">public.sensor_readings</strong></div>
+                <div class="diag-row"><span class="diag-label">Row Level Security</span><strong class="diag-val">Enabled (Read-Only)</strong></div>
+                <div class="diag-row"><span class="diag-label">Edge Ingestion Function</span><strong class="diag-val">ingest-sensor-data</strong></div>
+                <div class="diag-row"><span class="diag-label">Roundtrip Latency</span><strong class="diag-val mono" id="diagLatencyVal">-- ms</strong></div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ESP32 Pin Mapping Reference -->
+          <div class="panel pinout-panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">ESP32 Pinout Wiring Guide</h2>
+                <p class="panel-subtitle">Reference schematics for connecting physical sensors, motor testbed, BMS, buzzer, and LEDs to the ESP32</p>
+              </div>
+            </div>
+
+            <div class="pinout-grid">
+              <div class="pinout-item">
+                <span class="pin-badge">GPIO 4</span>
+                <div class="pin-details">
+                  <strong>DHT11 Data Pin</strong>
+                  <span>Requires 4.7kΩ – 10kΩ pull-up resistor to 3.3V</span>
+                </div>
+              </div>
+              <div class="pinout-item">
+                <span class="pin-badge">GPIO 21 & 22</span>
+                <div class="pin-details">
+                  <strong>MPU6050 I2C Bus (SDA / SCL)</strong>
+                  <span>Hardware I2C fast-mode at 400kHz for vibration RMS & tilt angles</span>
+                </div>
+              </div>
+              <div class="pinout-item">
+                <span class="pin-badge">GPIO 34</span>
+                <div class="pin-details">
+                  <strong>Rain Sensor Analog Out (AOUT)</strong>
+                  <span>Connected to ADC1 Channel 6 for rain intensity measurement</span>
+                </div>
+              </div>
+              <div class="pinout-item">
+                <span class="pin-badge">GPIO 23</span>
+                <div class="pin-details">
+                  <strong>Rain Sensor Digital Out (DOUT)</strong>
+                  <span>LM393 comparator output for fast interrupt rain detection</span>
+                </div>
+              </div>
+              <div class="pinout-item">
+                <span class="pin-badge">GPIO 35</span>
+                <div class="pin-details">
+                  <strong>3.7V LiPo Battery Sense (ADC)</strong>
+                  <span>Resistor divider (100kΩ / 100kΩ) connected to ADC1 Channel 7</span>
+                </div>
+              </div>
+              <div class="pinout-item">
+                <span class="pin-badge">GPIO 18</span>
+                <div class="pin-details">
+                  <strong>Testbed Motor PWM Driver</strong>
+                  <span>Gate signal to logic-level N-MOSFET for motor speed & vibration induction</span>
+                </div>
+              </div>
+              <div class="pinout-item">
+                <span class="pin-badge">GPIO 19</span>
+                <div class="pin-details">
+                  <strong>Active Piezo Buzzer Pin</strong>
+                  <span>Direct logic output driving 85dB high-frequency annunciator tone</span>
+                </div>
+              </div>
+              <div class="pinout-item">
+                <span class="pin-badge">GPIO 2</span>
+                <div class="pin-details">
+                  <strong>Alarm Indicator LED</strong>
+                  <span>Current-limited visual warning indicator (active HIGH)</span>
+                </div>
+              </div>
+              <div class="pinout-item">
+                <span class="pin-badge">VIN (5V) & Solar</span>
+                <div class="pin-details">
+                  <strong>TP4056 BMS & Motor Power Rail</strong>
+                  <span>Solar harvesting input and regulated 5V rail for motor testbed</span>
+                </div>
+              </div>
+              <div class="pinout-item">
+                <span class="pin-badge">3.3V & GND</span>
+                <div class="pin-details">
+                  <strong>Sensor VCC & Common Ground</strong>
+                  <span>Regulated 3.3V logic supply and unified ground plane</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ================================================================ -->
+        <!-- SECTION 8: SETTINGS -->
+        <!-- ================================================================ -->
+        <section class="view-section" id="view-settings" aria-labelledby="settingsHeading">
+          
+          <div class="section-toolbar">
+            <div>
+              <h1 class="view-title" id="settingsHeading">Dashboard & Telemetry Settings</h1>
+              <p class="view-subtitle">Manage cloud credentials, polling frequency, and client preferences</p>
+            </div>
+          </div>
+
+          <div class="settings-grid">
+
+            <!-- Supabase Connection Config Card -->
+            <div class="panel settings-card">
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title">Supabase Connection Credentials</h2>
+                  <p class="panel-subtitle">Loaded from <code>config.js</code>. Override below for browser testing.</p>
+                </div>
+                <span class="status-pill" id="settingsConfigStatus">Checking...</span>
+              </div>
+
+              <div class="settings-form-body">
+                <div class="form-group">
+                  <label class="form-label" for="cfgSupabaseUrl">Supabase Project URL</label>
+                  <input class="form-input mono" id="cfgSupabaseUrl" type="url" placeholder="https://your-project-id.supabase.co">
+                  <span class="form-help">Found in Supabase Project Settings → API → Project URL</span>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="cfgSupabaseKey">Supabase Publishable / Anon Key</label>
+                  <div class="password-wrapper">
+                    <input class="form-input mono" id="cfgSupabaseKey" type="password" placeholder="sb_publishable_... or eyJhbGciOi...">
+                    <button class="toggle-password-btn" id="btnToggleKeyMask" type="button" aria-label="Toggle key visibility">👁</button>
+                  </div>
+                  <span class="form-help text-warning">⚠️ ONLY enter the public/anon key. NEVER enter the service_role key here.</span>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="cfgMachineId">Target Machine ID</label>
+                  <input class="form-input" id="cfgMachineId" type="text" placeholder="Alpha-01">
+                  <span class="form-help">Filters rows where <code>machine_id</code> matches this string</span>
+                </div>
+
+                <div class="settings-action-row">
+                  <button class="btn btn-primary" id="btnSaveConfig" type="button">Save & Reconnect</button>
+                  <button class="btn btn-secondary" id="btnTestSupabase" type="button">Test Database Reachability</button>
+                  <button class="btn btn-ghost" id="btnResetConfig" type="button">Reset to config.js</button>
+                </div>
+
+                <div class="test-result-box hidden" id="testResultBox"></div>
+              </div>
+            </div>
+
+            <!-- Telemetry & Polling Preferences -->
+            <div class="panel settings-card">
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title">Client Display & Polling Preferences</h2>
+                  <p class="panel-subtitle">Customize user interface behavior and refresh rates</p>
+                </div>
+              </div>
+
+              <div class="settings-form-body">
+                <!-- Polling Interval -->
+                <div class="form-group">
+                  <div class="label-row-between">
+                    <label class="form-label" for="cfgPollInterval">Database Polling Interval</label>
+                    <span class="setting-val-badge" id="lblPollInterval">5 seconds</span>
+                  </div>
+                  <input class="slider-input" id="cfgPollInterval" type="range" min="2000" max="30000" step="1000" value="5000">
+                  <span class="form-help">Controls how frequently the dashboard queries Supabase in Live mode.</span>
+                </div>
+
+                <!-- Theme Selection -->
+                <div class="form-group">
+                  <label class="form-label">Interface Theme</label>
+                  <div class="theme-radios">
+                    <label class="theme-radio-card active" id="radioDarkTheme">
+                      <input type="radio" name="uiTheme" value="dark" checked>
+                      <span>🌙 Dark Theme (Recommended)</span>
+                    </label>
+                    <label class="theme-radio-card" id="radioLightTheme">
+                      <input type="radio" name="uiTheme" value="light">
+                      <span>☀️ Light Theme</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Audio Alerts Toggle -->
+                <div class="form-group">
+                  <label class="toggle-checkbox-label">
+                    <input type="checkbox" id="cfgAudioAlerts">
+                    <span class="toggle-switch"></span>
+                    <span>Play subtle chime when a critical threshold is breached</span>
+                  </label>
+                </div>
+
+                <!-- Toast Notifications Toggle -->
+                <div class="form-group">
+                  <label class="toggle-checkbox-label">
+                    <input type="checkbox" id="cfgToastNotifications" checked>
+                    <span class="toggle-switch"></span>
+                    <span>Show toast notification popups on meaningful events</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+      </main>
+
+      <!-- Dashboard Footer -->
+      <footer class="app-footer">
+        <div class="footer-left">
+          <div class="footer-brand">
+            <span class="footer-brand-name">MECH<span class="brand-accent">AI</span></span>
+            <span class="footer-sub">IoT Environmental & Machine Intelligence</span>
+          </div>
+          <span class="footer-copyright">© <span id="footerYear"></span> MECH AI Platform. Built for engineering precision.</span>
+        </div>
+        <div class="footer-right">
+          <span class="footer-indicator">
+            <span class="footer-dot" id="footerDot"></span>
+            <span id="footerStatusText">Demo Mode Active</span>
+          </span>
+          <a class="footer-link" href="#twin">3D Digital Twin</a>
+          <a class="footer-link" href="#settings">Settings</a>
+          <a class="footer-link" href="#status">Pinout Guide</a>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- Global Slide-in Toast Notification Box -->
+  <div class="toast-container" id="toastContainer" role="status" aria-live="polite"></div>
+
+</body>
+</html>
